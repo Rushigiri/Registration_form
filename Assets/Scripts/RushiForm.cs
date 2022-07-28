@@ -22,11 +22,30 @@ public class RushiForm : MonoBehaviour
     public TMP_InputField _cityTxt;
     public TMP_InputField _addTxt;
     public Root root;
-    int index;
+    public GameObject buttonPrefab;
+    public Transform content;
+
+    public List<SingleButtonScript> listOfButtons;
+
+    public Canvas ShowFullDetailCanvas;
+
+    public int btnCounter;
+
+
+    public static RushiForm instance;
+    private void Awake()
+    {
+        instance = this;
+    }
+
     private void Start()
     {
-        
-        GetData(index);
+        btnCounter = 0;
+        GetData();
+
+        ShowFullDetailCanvas.enabled = false;
+
+        listOfButtons = new List<SingleButtonScript>();
         
     }
 
@@ -82,7 +101,7 @@ public class RushiForm : MonoBehaviour
             user.Country = _countryTxt.text;
             user.City = _cityTxt.text;
             user.Address = _addTxt.text;
-
+            Reset();
             root.DataList.Add(user);
             string jsonData = JsonUtility.ToJson(root);
             Debug.Log(jsonData);
@@ -94,30 +113,37 @@ public class RushiForm : MonoBehaviour
         }
     }
 
-    public void GetData(int d )
+    public void GetData()
     {
-        StartCoroutine(GetJsonData(d));
+        StartCoroutine(GetJsonData());
     }
     
     public void OnclickShowData(int a)
     {
-        index = a;
-        GetData(index);
+
+        DataShow(a);
+        ShowFullDetailCanvas.enabled = true;
 
     }
 
     public void DataShow(int b)
     {
+        GetData();
+
         TextMeshProUGUI name = FullDataShowPanel.transform.GetChild(1).GetChild(0).GetComponent<TextMeshProUGUI>();
         TextMeshProUGUI country = FullDataShowPanel.transform.GetChild(2).GetChild(0).GetComponent<TextMeshProUGUI>();
 
         name.text = root.DataList[b].Name;
 
         country.text = root.DataList[b].Country;
+
+
     }
 
 
-    IEnumerator GetJsonData(int c)
+   
+
+    IEnumerator GetJsonData()
     {
 
 
@@ -143,16 +169,17 @@ public class RushiForm : MonoBehaviour
             //TextMeshProUGUI buttonName =
             for (int i = 0; i < root.DataList.Count; i++)
             {
-                TextMeshProUGUI name = DataShowPanel.transform.GetChild(i).GetChild(0).GetComponent<TextMeshProUGUI>();
-                
-                name.text = root.DataList[i].Name;
-            }
-            for (int i = root.DataList.Count; i < 8; i++)
-            {
-                DataShowPanel.transform.GetChild(i).gameObject.SetActive(false);
+                if(i>btnCounter)
+                {
+                    GameObject thisBtn = Instantiate(buttonPrefab, content);
+                    thisBtn.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = root.DataList[i].Name;
+                    thisBtn.GetComponent<SingleButtonScript>().userNumber = i;
+                    listOfButtons.Add(thisBtn.GetComponent<SingleButtonScript>());
+                    btnCounter++;
+                }
+
             }
 
-            DataShow(c);
             
         }
 
@@ -170,7 +197,15 @@ public class RushiForm : MonoBehaviour
         public string City;
         public string Address;
     }
-
+    public void Reset()
+    {
+        _nameTxt.text = "";
+        _countryTxt.text = "";
+        _mobileTxt.text = "";
+        _emailTxt.text = "";
+        _cityTxt.text = "";
+        _addTxt.text = "";
+    }
     [System.Serializable]
     public class Root
     {
